@@ -9,6 +9,7 @@ import RulesManagePage from '@/pages/RulesManagePage.tsx'
 import SearchPage from '@/pages/SearchPage.tsx'
 import TimelinePage from '@/pages/TimelinePage.tsx'
 import LegionPage from '@/pages/LegionPage.tsx'
+import LoginPage from '@/pages/LoginPage.tsx'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/timeline" element={<TimelinePage />} />
           <Route path="/legion" element={<LegionPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
