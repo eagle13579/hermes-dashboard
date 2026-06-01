@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from services.notification_service import notifier
+
 logger = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────────────────────────────
@@ -1101,6 +1103,17 @@ def auto_apply_rules(event: str, task: BoardItem) -> list[dict[str, Any]]:
             _save_boards(boards)
             logger.info("  ↳ Added label '%s' to '%s' (via rule #%d)",
                          action_result["value"], task.project_name, rule.id)
+
+        # Apply notify via FeishuNotifier
+        if action_result.get("action") == "notify":
+            channel = action_result.get("value", "")
+            logger.info("  ↳ Sending Feishu notification for '%s' (channel=%s, rule #%d)",
+                         task.project_name, channel, rule.id)
+            notifier.send_kanban_notification(
+                task_name=task.project_name,
+                event=event,
+                assignee=channel,
+            )
 
         action_result["rule_id"] = rule.id
         action_result["rule_name"] = rule.name

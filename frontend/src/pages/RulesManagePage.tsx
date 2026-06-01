@@ -40,6 +40,7 @@ const ACTION_PRESETS = [
   { value: 'add_label(urgent)', label: '添加标签: urgent' },
   { value: 'notify(slack)', label: '通知: Slack' },
   { value: 'notify(email)', label: '通知: Email' },
+  { value: 'notify(feishu)', label: '通知: 飞书(Feishu)' },
 ]
 
 const CONDITION_PRESETS = [
@@ -327,6 +328,14 @@ export default function RulesManagePage() {
                   </option>
                 ))}
               </select>
+              {form.action === 'notify(feishu)' && (
+                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                  ⚠️ 飞书通知需在 <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">.env</code> 中配置
+                  <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">FEISHU_APP_ID</code>、
+                  <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">FEISHU_APP_SECRET</code> 和
+                  <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[10px]">FEISHU_HOME_CHANNEL</code>
+                </p>
+              )}
             </div>
           </div>
           {/* Form Actions */}

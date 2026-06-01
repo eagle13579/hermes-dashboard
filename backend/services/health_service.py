@@ -47,6 +47,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from services.notification_service import notifier
+
 logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────
@@ -69,6 +71,10 @@ _DEFAULT_SERVICES: list[dict[str, Any]] = [
     {"name": "Skill Studio", "port": 8097, "category": "P2按需"},
     {"name": "Soul Diff Engine", "port": 8098, "category": "P2按需"},
 ]
+
+# ── Previous-status tracker for UP→DOWN alert ─────────────────────────
+_prev_services_status: dict[str, str] = {}
+"""缓存上次探测到的各服务状态，用于检测 UP→DOWN 转换并触发飞书告警。"""
 
 # ── SQLite helpers ─────────────────────────────────────────────────────
 
@@ -357,6 +363,27 @@ class HealthService:
             if online_count > 0
             else 0.0
         )
+
+        # 检测 UP→DOWN 转换并触发飞书告警
+        global _prev_services_status
+        for svc in services:
+            svc_name = svc["name"]
+            current = svc["status"]
+            previous = _prev_services_status.get(svc_name)
+            if previous == "up" and current == "down":
+                logger.warning(
+                    "🔴 服务 DOWN 检测: %s 从 UP 转换为 DOWN — 触发飞书告警",
+                    svc_name,
+                )
+                notifier.send_alert(
+                    service_name=svc_name,
+                    status="down",
+                    details=(
+                        f"服务 {svc_name} (端口 {svc['port']}) "
+                        f"从在线状态转换为离线。类别: {svc['category']}"
+                    ),
+                )
+            _prev_services_status[svc_name] = current
 
         # 判定整体状态
         if total == 0:
