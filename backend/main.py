@@ -37,6 +37,7 @@ from routers.skill_import import router as skill_import_router
 from routers.log_stream import router as log_stream_router
 from routers.session import router as session_router
 from routers.health_router import router as health_router
+from routers.auth_router import router as auth_router
 from security.auth import require_api_key
 from security.exceptions import register_exception_handlers
 from security.rate_limit import RateLimitMiddleware
@@ -168,6 +169,7 @@ app.include_router(skill_import_router)
 app.include_router(log_stream_router)
 app.include_router(session_router)
 app.include_router(health_router)
+app.include_router(auth_router)
 
 # ── Static files (frontend SPA) ──────────────────────────────────────────
 
