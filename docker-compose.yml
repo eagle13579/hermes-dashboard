@@ -1,0 +1,99 @@
+# ============================================================
+# Hermes Dashboard — Docker Compose 编排文件
+# ============================================================
+# 使用方式:
+#   启动所有服务:   docker compose up -d
+#   停止所有服务:   docker compose down
+#   查看日志:       docker compose logs -f
+#   重建镜像:       docker compose build
+#   重启单个服务:   docker compose restart backend
+#
+# 访问地址:
+#   前端页面:       http://localhost:3000
+#   后端 API:       http://localhost:8090/api/
+#   API 文档:       http://localhost:8090/docs
+#   健康检查:       http://localhost:8090/health
+# ============================================================
+
+services:
+  # ============================================================
+  # 后端服务 (FastAPI + Uvicorn)
+  # ============================================================
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: hermes-dashboard-backend
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8090
+      # Docker 环境下 PostgreSQL 连接（如使用外部数据库）
+      # PG_HOST=host.docker.internal
+      # PG_PORT=5432
+    volumes:
+      # 数据持久化（HERMES_HOME 路径映射）
+      - hermes_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - hermes-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================
+  # 前端服务 (Nginx + React SPA)
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hermes-dashboard-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - hermes-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ============================================================
+# 数据卷
+# ============================================================
+volumes:
+  hermes_data:
+    driver: local
+
+# ============================================================
+# 网络
+# ============================================================
+networks:
+  hermes-net:
+    name: hermes-dashboard-network
+    driver: bridge
