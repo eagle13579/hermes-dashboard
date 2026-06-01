@@ -25,3 +25,19 @@ docker compose up -d
 | SSE日志流 | EventSource实时日志 |
 | 测试覆盖 | 160测试 / 90%覆盖率 |
 | 文档完整 | ADR决策记录 / 心智模型 / 复盘 |
+
+## 性能压测
+
+```bash
+# 安装 k6 (Windows)
+winget install k6
+
+# 运行压测 (后端需运行在 :8090)
+cd scripts
+k6 run load_test.js
+
+# 指定其他地址
+k6 run -e BASE_URL=http://localhost:8090 load_test.js
+```
+
+**阈值**: P95<500ms · 失败率<1% · 并发 10→50→0
